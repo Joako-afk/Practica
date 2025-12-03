@@ -5,8 +5,8 @@ import { useAuth } from "../context/sesion";
 
 export default function NuevaSolicitud() {
    const { cargarSolicitudes } = useSolicitudes();
-  const { user } = useAuth();
-  const navigate = useNavigate();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     
   // Datos del formulario
   const [form, setForm] = useState({

@@ -15,7 +15,4 @@ export const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Verificamos la conexión al iniciar el servidor
-pool.connect()
-  .then(() => console.log(" Conexión exitosa a PostgreSQL"))
-  .catch((err) => console.error(" Error al conectar con PostgreSQL:", err));
+pool.connect().catch(() => {})

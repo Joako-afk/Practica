@@ -9,8 +9,16 @@ import Register from "./pages/registro";
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" replace />;
+  const hasToken = !!localStorage.getItem("token");
+
+  // Verificar si el usuario está autenticado
+  if (!user && hasToken) {
+    return children; // Permitir acceso si hay token (se cargará el usuario en otro lugar)
+  }
+
+  return <Navigate to="/login" replace />;
 }
+
 
 export default function App() {
   return (

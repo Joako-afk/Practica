@@ -16,7 +16,7 @@ export const obtenerListas = async (req, res) => {
       detalles: detalles.rows,
     });
   } catch (error) {
-    console.error("Error al obtener listas:", error);
+    // Sin console.error: solo respondemos al cliente
     res.status(500).json({ message: "Error al obtener listas" });
   }
 };

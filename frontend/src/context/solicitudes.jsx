@@ -1,14 +1,11 @@
-﻿// frontend/src/context/solicitudes.jsx
-import { createContext, useState, useContext, useEffect } from "react";
-import { formatearFechaLarga } from "../utils/helpers";
-import { ESTADOS_ID } from "../utils/helpers"; // Asegúrate que ESTADOS_ID esté exportado allí o en estadosMap.js
+﻿import { createContext, useContext, useState, useEffect } from "react";
+import { ESTADOS_ID, formatearFechaLarga } from "../utils/helpers";
 
 const SolicitudesContext = createContext();
 
 export function SolicitudesProvider({ children }) {
   const [solicitudes, setSolicitudes] = useState([]);
 
-  // Cargar todas las solicitudes desde el backend
   const cargarSolicitudes = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -22,7 +19,6 @@ export function SolicitudesProvider({ children }) {
       });
 
       const data = await res.json();
-      console.log("Datos crudos:", data);
 
       if (Array.isArray(data)) {
         const normalizado = data.map((s) => ({
@@ -33,28 +29,17 @@ export function SolicitudesProvider({ children }) {
           estado: s.estado || "Recibido",
         }));
 
-        console.log("Normalizado:", normalizado);
         setSolicitudes(normalizado);
       }
     } catch (error) {
-      console.error("Error cargando solicitudes:", error);
+      // silencioso para prod
     }
   };
 
-  // Ejecutar al montar
-  useEffect(() => {
-    cargarSolicitudes();
-  }, []);
-
-  // Cambiar estado de una solicitud
   const actualizarEstado = async (id, nuevoEstado, ejecutor = null) => {
     try {
       const token = localStorage.getItem("token");
-
-      // Convertir texto → id numérico para el backend
       const idEstado = ESTADOS_ID[nuevoEstado];
-
-      console.log("Estado enviado al backend:", nuevoEstado, "→", idEstado);
 
       const res = await fetch(
         `http://localhost:5000/api/solicitudes/${id}/estado`,
@@ -71,29 +56,25 @@ export function SolicitudesProvider({ children }) {
         }
       );
 
-      if (!res.ok) {
-        throw new Error("Error al actualizar estado");
-      }
+      if (!res.ok) return;
 
       await cargarSolicitudes();
     } catch (error) {
-      console.error("Error al actualizar estado:", error);
+      // silencioso
     }
   };
 
+  useEffect(() => {
+    cargarSolicitudes();
+  }, []);
+
   return (
     <SolicitudesContext.Provider
-      value={{
-        solicitudes,
-        cargarSolicitudes,
-        actualizarEstado,
-      }}
+      value={{ solicitudes, cargarSolicitudes, actualizarEstado }}
     >
       {children}
     </SolicitudesContext.Provider>
   );
 }
 
-export function useSolicitudes() {
-  return useContext(SolicitudesContext);
-}
+export const useSolicitudes = () => useContext(SolicitudesContext);

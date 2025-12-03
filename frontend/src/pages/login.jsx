@@ -39,7 +39,6 @@ export default function Login() {
       navigate("/principal"); //  cambio de pantalla
 
     } catch (err) {
-      console.error("Error al iniciar sesión:", err);
       setError("Error de conexión con el servidor");
     }
   };

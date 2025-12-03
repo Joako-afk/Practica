@@ -2,31 +2,21 @@ import { pool } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// ==============================
-// DOMINIOS PERMITIDOS (EDITA AQUÍ)
-// ==============================
 const DOMINIOS_PERMITIDOS = [
   "cecinasllanquihue.cl",
   "gamo.cl",
   "modinger.cl",
   "cecinas.com",
-  // agrega más si necesitas
 ];
 
 export const crearUsuario = async (req, res) => {
   try {
-    console.log("Datos recibidos en backend:", req.body);
-
     const { nombre, apellido, rut, email, password, departamento } = req.body;
 
     if (!nombre || !apellido || !rut || !email || !password || !departamento) {
-      console.log("Faltan campos:", req.body);
       return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
 
-    // ==============================
-    // ✅ VALIDAR DOMINIO DEL CORREO
-    // ==============================
     const dominio = email.split("@")[1]?.toLowerCase();
     if (!dominio || !DOMINIOS_PERMITIDOS.includes(dominio)) {
       return res.status(400).json({
@@ -34,16 +24,13 @@ export const crearUsuario = async (req, res) => {
       });
     }
 
-    // Encriptar contraseña
     const hash = await bcrypt.hash(password, 10);
 
-    // Obtener rol solicitante por defecto
     const rolRes = await pool.query(
       "SELECT id_rol FROM rol WHERE nombre = 'solicitante' LIMIT 1"
     );
     const idRol = rolRes.rows[0]?.id_rol || 1;
 
-    // Insertar usuario
     const result = await pool.query(
       `INSERT INTO usuario 
       (rut, nombre, apellido, correo, contrasena, departamento, rol)
@@ -52,15 +39,12 @@ export const crearUsuario = async (req, res) => {
       [rut, nombre, apellido, email, hash, departamento, idRol]
     );
 
-    console.log("Usuario insertado:", result.rows[0]);
-
     res.status(201).json({
       message: "Usuario creado correctamente",
       usuario: result.rows[0],
     });
-  } catch (err) {
-    console.error("Error al registrar usuario:", err);
-    res.status(500).json({ message: "Error del servidor" });
+  } catch (error) {
+    res.status(500).json({ message: "Error al crear usuario" });
   }
 };
 
@@ -69,26 +53,33 @@ export const loginUsuario = async (req, res) => {
     const { rut, password } = req.body;
 
     if (!rut || !password) {
-      return res.status(400).json({ message: "RUT y contraseña son requeridos" });
+      return res
+        .status(400)
+        .json({ message: "RUT y contraseña son requeridos" });
     }
 
-    // Buscar usuario por RUT
-    const result = await pool.query("SELECT * FROM usuario WHERE rut = $1", [rut]);
+    const result = await pool.query(
+      "SELECT * FROM usuario WHERE rut = $1",
+      [rut]
+    );
     const usuario = result.rows[0];
 
     if (!usuario) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+      // Mensaje menos obvio: no decimos "usuario no encontrado"
+      return res
+        .status(401)
+        .json({ message: "Usuario o contraseña incorrectos" });
     }
 
-    // Comparar contraseña
     const coincide = await bcrypt.compare(password, usuario.contrasena);
     if (!coincide) {
-      return res.status(401).json({ message: "Contraseña incorrecta" });
+      return res
+        .status(401)
+        .json({ message: "Usuario o contraseña incorrectos" });
     }
 
-    // Crear token
     const token = jwt.sign(
-      { id: usuario.id_usuario, rol: usuario.rol },
+      { rut: usuario.rut, rol: usuario.rol },
       process.env.JWT_SECRET,
       { expiresIn: "10m" }
     );
@@ -97,7 +88,6 @@ export const loginUsuario = async (req, res) => {
       message: "Inicio de sesión exitoso",
       token,
       usuario: {
-        id_usuario: usuario.id_usuario,
         rut: usuario.rut,
         nombre: usuario.nombre,
         apellido: usuario.apellido,
@@ -107,7 +97,6 @@ export const loginUsuario = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error al iniciar sesión:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };

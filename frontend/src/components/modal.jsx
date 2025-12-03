@@ -53,7 +53,6 @@ export default function Modal({ card, moverTarjeta, onClose }) {
         ruta.reverse(); // para que quede Sistema → SubSistema → Sector → Atributo
         setRutaCambio(ruta.join(" → "));
       } catch (err) {
-        console.error("Error cargando ruta del cambio:", err);
         setRutaCambio("No disponible");
       }
     };

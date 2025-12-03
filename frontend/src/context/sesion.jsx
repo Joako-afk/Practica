@@ -1,24 +1,36 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  // Cargar usuario desde localStorage al iniciar
+  // Al iniciar la app → cargar usuario desde localStorage si existe
   useEffect(() => {
     const saved = localStorage.getItem("app_user");
-    if (saved) setUser(JSON.parse(saved));
+    if (saved) {
+      setUser(JSON.parse(saved));
+    }
   }, []);
 
-  // Guardar usuario cuando cambie
+  // Cuando user cambia → persistirlo
   useEffect(() => {
-    if (user) localStorage.setItem("app_user", JSON.stringify(user));
-    else localStorage.removeItem("app_user");
+    if (user) {
+      localStorage.setItem("app_user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("app_user");
+    }
   }, [user]);
 
-  const login = (nombre) => setUser({ name: nombre });
-  const logout = () => setUser(null);
+  // Login recibe un OBJETO con rut, nombre, apellido y rol
+  const login = (usuario) => {
+    setUser(usuario);
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("token");
+  };
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
@@ -27,6 +39,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);
