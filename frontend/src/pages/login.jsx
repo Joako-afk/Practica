@@ -32,7 +32,7 @@ export default function Login() {
     localStorage.setItem("token", data.token);
 
     // Guardar usuario y redirigir
-      console.log("Login exitoso:", data.usuario);
+      localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
       await cargarSolicitudes();

@@ -12,6 +12,8 @@ export default function Register() {
   });
 
   const [departamento, setDepartamento] = useState([]);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   // 🔹 Cargar departamentos desde backend
@@ -19,7 +21,9 @@ export default function Register() {
     fetch("http://localhost:5000/api/departamento")
       .then((res) => res.json())
       .then((data) => setDepartamento(data))
-      .catch((err) => console.error("Error al cargar departamentos:", err));
+      .catch(() => {
+        setError("Error al cargar departamentos");
+      });
   }, []);
 
   // 🔹 Manejar cambios en los inputs
@@ -35,7 +39,8 @@ export default function Register() {
   //  Enviar datos al backend
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(" Enviando datos al backend:", form);
+    setError("");
+    setSuccess("");
 
     try {
       const res = await fetch("http://localhost:5000/api/usuario", {
@@ -45,23 +50,19 @@ export default function Register() {
       });
 
       const data = await res.json();
-      console.log(" Respuesta del backend:", data);
 
       if (res.ok) {
-        // Mensaje bonito y redirección automática
-        alert("Usuario registrado correctamente ");
-        setTimeout(() => navigate("/login"), 500); //  vuelve al login
+        setSuccess("Usuario registrado correctamente. Redirigiendo al inicio de sesión...");
+        // redirección suave al login
+        setTimeout(() => navigate("/login"), 800);
       } else {
-        alert(`Error: ${data.message || "No se pudo registrar"}`);
+        setError(data.message || "No se pudo registrar el usuario");
       }
-    } catch (err) {
-      console.error(" Error al registrar usuario:", err);
-      alert("Error al registrar el usuario");
+    } catch {
+      setError("Error al registrar el usuario");
     }
   };
 
-
-  //  Interfaz con el diseño nuevo
   return (
     <div className="min-h-screen flex bg-gray-100">
       {/* Panel izquierdo con logo */}
@@ -90,6 +91,18 @@ export default function Register() {
           <h1 className="text-3xl font-bold text-center text-blue-700 mb-8">
             Registro de Usuario
           </h1>
+
+          {error && (
+            <div className="bg-red-100 text-red-700 border border-red-300 rounded-md p-2 mb-3 text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-100 text-green-700 border border-green-300 rounded-md p-2 mb-3 text-sm text-center">
+              {success}
+            </div>
+          )}
 
           {/* Nombre */}
           <div>
