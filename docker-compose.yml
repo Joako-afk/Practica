@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123   # cámbialo si quieres
+      POSTGRES_DB: proyecto            # coincide con DB_NAME del backend
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # OPCIONAL: si quieres que cargue el .sql automáticamente la primera vez
+    # volumes:
+    #   - db_data:/var/lib/postgresql/data
+    #   - ./CONTROL DE PROCESOS.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      # Lo que tu backend lee en src/config/db.js
+      PORT: 5000
+      DB_USER: USUARIO
+      DB_PASS: APP12345*
+      DB_NAME: proyecto
+      DB_HOST: db        # IMPORTANTE: aquí es el nombre del servicio, no localhost
+      DB_PORT: 5432
+      # Pon un secreto nuevo, no el de tu .env local
+      JWT_SECRET: 90e00fac6260d9aa773f8d5f1f33341b
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  db_data:
