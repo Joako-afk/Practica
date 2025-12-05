@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   db:
@@ -12,10 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-    # OPCIONAL: si quieres que cargue el .sql automáticamente la primera vez
-    # volumes:
-    #   - db_data:/var/lib/postgresql/data
-    #   - ./CONTROL DE PROCESOS.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./CONTROL DE PROCESOS.sql:/docker-entrypoint-initdb.d/init.sql
 
   backend:
     build:

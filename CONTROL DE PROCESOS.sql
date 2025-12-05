@@ -119,8 +119,8 @@ FOREIGN KEY (JERARQUIA) REFERENCES JERARQUIA(ID_JERARQUIA);
 
 select * from usuario;
 
-
 select * from departamento;
+
 insert into departamento(nombre)
 values ('TI'),('RRHH'),('Contabilidad');
 
